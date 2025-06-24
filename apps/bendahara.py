@@ -11,12 +11,13 @@ from utils.activity_logger import log_activity
 # Konstanta folder
 UPLOAD_GAJI_STATUS_FILE = "data/bendahara/gaji/upload_gaji_status.json"
 GAJI_FOLDER = "data/dokumen/bendahara/gaji"
-os.makedirs(GAJI_FOLDER, exist_ok=True)
-EXCEL_FOLDER = "data/bendahara/laporan_excel"
 
 # Pastikan semua folder dan file penting tersedia
 os.makedirs(EXCEL_FOLDER, exist_ok=True)
 os.makedirs(GAJI_FOLDER, exist_ok=True)
+if not os.path.exists(UPLOAD_GAJI_STATUS_FILE):
+    with open(UPLOAD_GAJI_STATUS_FILE, "w") as f:
+        json.dump({"aktif": False}, f)
 if not os.path.exists(UPLOAD_GAJI_STATUS_FILE):
     with open(UPLOAD_GAJI_STATUS_FILE, "w") as f:
         json.dump({"aktif": False}, f)
