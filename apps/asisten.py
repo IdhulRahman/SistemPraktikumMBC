@@ -4,7 +4,6 @@ import json
 import datetime
 import mimetypes
 import pandas as pd
-
 from utils.auth import is_logged_in
 from utils.file_handler import save_file, list_files, get_file_bytes
 from utils.scheduler import get_oncall_schedule, get_maintenance_schedule
@@ -165,7 +164,7 @@ def show():
                     ext = bukti_gaji.name.split(".")[-1]
                     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                     
-                    filename = f"gaji_{safe_nama}_{safe_nim}_{timestamp}.{ext}"
+                    filename = f"{nama}_{nim}.{ext}"
                     save_file(bukti_gaji, subfolder="bendahara/gaji", new_filename=filename)
                     log_activity(st.session_state.username, "Upload Bukti Gaji", filename)
     
