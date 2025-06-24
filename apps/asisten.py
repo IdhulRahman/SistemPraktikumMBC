@@ -3,14 +3,15 @@ from utils.auth import is_logged_in
 from utils.file_handler import save_file, list_files, get_file_bytes
 from utils.scheduler import get_oncall_schedule, get_maintenance_schedule
 from utils.activity_logger import log_activity
-from utils.finance_tools import get_log_kas
 import pandas as pd
 import datetime
 import os
 import mimetypes
+import json
 
 LAPORAN_MAINTENANCE_FILE = "data/hardware/laporan_maintenance.csv"
 EXCEL_FOLDER = "data/bendahara/laporan_excel"
+UPLOAD_GAJI_STATUS_FILE = "data/bendahara/gaji/upload_gaji_status.json"
 
 def show():
     if not is_logged_in() or st.session_state.role not in ["asisten", "koordinator", "akademik", "hardware", "manajemen_praktikum", "hr", "bendahara", "sekretaris"]:
@@ -18,7 +19,7 @@ def show():
         return
 
     st.title("🧑‍🔧 Asisten Praktikum")
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📤 Upload", "📅 Jadwal", "📥 Dokumen", "🧾 Laporan Maintenance", "📋 Log Pemasukan & Pengeluaran Kas"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📤 Upload", "📅 Jadwal", "📥 Dokumen", "🧾 Laporan Maintenance", "📋 Log Pemasukan & Pengeluaran Kas", "🤑 Upload Bukti Gaji"])
 
     # === TAB 1: UPLOAD ===
     with tab1:
@@ -128,3 +129,33 @@ def show():
                         st.dataframe(df, use_container_width=True)
                     except Exception as e:
                         st.error(f"Gagal membuka file: {e}")
+
+    # === TAB 6: UPLOAD BUKTI GAJI ===
+    with tab6:
+        st.subheader("🤑 Upload Bukti Gaji (Screenshot)")
+
+        status_upload = False
+        if os.path.exists(UPLOAD_GAJI_STATUS_FILE):
+            with open(UPLOAD_GAJI_STATUS_FILE) as f:
+                status_upload = json.load(f).get("aktif", False)
+
+        if status_upload:
+            nama = st.text_input("Nama Lengkap", placeholder="Contoh: Andi Saputra")
+            nim = st.text_input("NIM", placeholder="Contoh: 1101223117")
+            bulan = st.text_input("Periode Gaji", placeholder="Contoh: 5")
+
+            bukti_gaji = st.file_uploader("Unggah Bukti Gaji (jpg/png)", type=["jpg", "jpeg", "png"])
+
+            if st.button("📤 Kirim Bukti Gaji"):
+                if not all([nama.strip(), nim.strip(), bulan.strip(), bukti_gaji]):
+                    st.error("⚠️ Lengkapi semua kolom dan file terlebih dahulu.")
+                else:
+                    ext = bukti_gaji.name.split(".")[-1]
+                    
+                    filename = f"{nama}_{nim}.{ext}"
+                    save_file(bukti_gaji, subfolder="bendahara/gaji", new_filename=filename)
+                    log_activity(st.session_state.username, "Upload Bukti Gaji", filename)
+
+                    st.success(f"✅ Bukti gaji bulan {bulan} berhasil diupload sebagai `{filename}`.")
+        else:
+            st.warning("📢 Upload bukti gaji belum dibuka oleh bendahara.")
