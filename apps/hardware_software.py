@@ -38,10 +38,13 @@ def show():
     # === TAB 1: INVENTARIS ===
     with tab1:
         st.subheader("📦 Manajemen Inventaris Alat")
+
         with st.form("form_inventaris"):
-            alat = st.text_input("Nama Alat")
+            st.markdown("### ➕ Tambah Inventaris Baru")
+            alat = st.text_input("Nama Alat", placeholder="Contoh: Oscilloscope")
             jumlah = st.number_input("Jumlah Alat", min_value=1, step=1)
-            submit = st.form_submit_button("➕ Tambah Inventaris")
+            keterangan = st.text_area("Keterangan", placeholder="Contoh: Digunakan untuk praktikum sinyal dan sistem.")
+            submit = st.form_submit_button("✅ Simpan Inventaris")
 
         if submit:
             if alat.strip():
@@ -49,29 +52,55 @@ def show():
                 if not df.empty and alat.lower() in df["nama"].str.lower().values:
                     df.loc[df["nama"].str.lower() == alat.lower(), "jumlah"] += jumlah
                 else:
-                    df = pd.concat([df, pd.DataFrame([{"nama": alat, "jumlah": jumlah}])], ignore_index=True)
+                    df = pd.concat([df, pd.DataFrame([{
+                        "nama": alat,
+                        "jumlah": jumlah,
+                        "keterangan": keterangan
+                    }])], ignore_index=True)
                 save_csv(INVENTARIS_FILE, df)
-                log_activity(st.session_state.username, "Tambah Inventaris", f"{alat} - {jumlah}")
-                st.success("Inventaris berhasil disimpan.")
+                log_activity(st.session_state.username, "Tambah Inventaris", f"{alat} - {jumlah} - {keterangan}")
+                st.success("✅ Inventaris berhasil disimpan.")
                 st.rerun()
             else:
-                st.warning("Nama alat tidak boleh kosong.")
-
+                st.warning("⚠️ Nama alat tidak boleh kosong.")
+        # Tampilkan daftar inventaris
         st.markdown("### 📋 Daftar Inventaris")
         df = load_csv(INVENTARIS_FILE)
+
         if not df.empty:
             total = df["jumlah"].sum()
+
             for idx, row in df.iterrows():
                 with st.expander(f"🔧 {row['nama']} ({row['jumlah']} buah)"):
-                    col1, col2 = st.columns([0.75, 0.25])
-                    with col1:
-                        st.write(f"Jumlah: {row['jumlah']}")
-                    with col2:
+                    col_info, col_action = st.columns([0.85, 0.15])
+
+                    with col_info:
+                        st.markdown(
+                            f"""
+                            <div style="
+                                padding: 10px;
+                                border-left: 5px solid #4F8BF9;
+                                background-color: #FAFAFA;
+                                border-radius: 6px;
+                                font-size: 15px;
+                                color: #333;
+                                margin-bottom: 10px;
+                            ">
+                                <p><strong>📦 Nama:</strong> {row['nama']}</p>
+                                <p><strong>🔢 Jumlah:</strong> {row['jumlah']} buah</p>
+                                <p><strong>📝 Keterangan:</strong> {row.get('keterangan', '-')}</p>
+                            </div>
+                            """, 
+                            unsafe_allow_html=True
+                        )
+
+                    with col_action:
                         if st.button("🗑️ Hapus", key=f"hapus_inventaris_{idx}"):
                             df = df.drop(idx).reset_index(drop=True)
                             save_csv(INVENTARIS_FILE, df)
                             log_activity(st.session_state.username, "Hapus Inventaris", row["nama"])
                             st.rerun()
+
             st.caption(f"📦 Total Seluruh Inventaris: **{total}** alat")
         else:
             st.info("Belum ada data inventaris.")
@@ -102,16 +131,24 @@ def show():
                 st.rerun()
             else:
                 st.warning("Nama asisten dan modul tidak boleh kosong.")
-
+                
         st.markdown("### 📋 Daftar Jadwal Maintenance")
         df = load_csv(MAINTENANCE_FILE)
+
         if not df.empty:
             for _, row in df.iterrows():
-                st.markdown(f"- 📅 `{row['tanggal']}` | 👤 **{row['asisten']}** | 🧪 Modul: **{row['modul']}**")
-                if row["catatan"]:
-                    st.caption(f"📝 {row['catatan']}")
+                with st.container():
+                    st.markdown(f"""
+                        <div style="border:1px solid #ccc; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                            <b>📅 Tanggal:</b> <code>{row['tanggal']}</code><br>
+                            <b>👤 Asisten:</b> {row['asisten']}<br>
+                            <b>🧪 Modul:</b> {row['modul']}<br>
+                            {"<b>📝 Catatan:</b> " + row['catatan'] if row['catatan'] else ""}
+                        </div>
+                    """, unsafe_allow_html=True)
         else:
             st.info("Belum ada jadwal maintenance.")
+
 
     # === TAB 3: LAPORAN MAINTENANCE ===
     with tab3:

@@ -171,6 +171,6 @@ def show():
                     st.success(f"✅ Bukti gaji bulan {bulan} berhasil diupload sebagai `{filename}`.")
     
                     # Optional: Tampilkan preview hasil upload
-                    st.image(os.path.join(GAJI_FOLDER, filename), caption="📄 Preview Bukti Gaji", use_column_width=True)
+                    st.image(os.path.join(GAJI_FOLDER, filename), caption="📄 Preview Bukti Gaji", use_container_width=True)
         else:
             st.warning("📢 Upload bukti gaji belum dibuka oleh bendahara.")

@@ -10,25 +10,16 @@ from utils.activity_logger import log_activity
 
 # Konstanta folder
 UPLOAD_GAJI_STATUS_FILE = "data/bendahara/gaji/upload_gaji_status.json"
-GAJI_FOLDER = "data/dokumen/bendahara/gaji"
-
-
-
-# Pastikan semua folder dan file penting tersedia
-os.makedirs(EXCEL_FOLDER, exist_ok=True)
-os.makedirs(GAJI_FOLDER, exist_ok=True)
-if not os.path.exists(UPLOAD_GAJI_STATUS_FILE):
-    with open(UPLOAD_GAJI_STATUS_FILE, "w") as f:
-        json.dump({"aktif": False}, f)
-
-# Konstanta folder
-UPLOAD_GAJI_STATUS_FILE = "data/bendahara/gaji/upload_gaji_status.json"
+UPLOAD_GAJI_STATUS_FILE_DIR = os.path.dirname(UPLOAD_GAJI_STATUS_FILE)
 GAJI_FOLDER = "data/dokumen/bendahara/gaji"
 EXCEL_FOLDER = "data/bendahara/laporan_excel"
+
 # Pastikan semua folder dan file penting tersedia
 os.makedirs(EXCEL_FOLDER, exist_ok=True)
-os.makedirs(UPLOAD_GAJI_STATUS_FILE, exist_ok=True)
 os.makedirs(GAJI_FOLDER, exist_ok=True)
+os.makedirs(UPLOAD_GAJI_STATUS_FILE_DIR, exist_ok=True)  # ini yang penting
+
+# Buat file default jika belum ada
 if not os.path.exists(UPLOAD_GAJI_STATUS_FILE):
     with open(UPLOAD_GAJI_STATUS_FILE, "w") as f:
         json.dump({"aktif": False}, f)
@@ -146,7 +137,7 @@ def show():
             for f in sorted(gaji_files, reverse=True):
                 with st.expander(f"🧾 {f}"):
                     file_path = os.path.join(GAJI_FOLDER, f)
-                    st.image(file_path, caption=f, use_column_width=True)
+                    st.image(file_path, caption=f, use_container_width =True)
     
                     col1, col2 = st.columns([0.7, 0.3])
                     with col1:

@@ -49,13 +49,15 @@ def delete_oncall(index):
 
 def get_maintenance_schedule():
     """
-    Mengambil jadwal maintenance dari file JSON.
+    Mengambil jadwal maintenance dari file CSV.
     """
-    path = "data/maintenance.json"
+    path = "data/hardware/maintenance.csv"
     if os.path.exists(path):
-        with open(path) as f:
-            data = json.load(f)
-            return pd.DataFrame(data)
+        try:
+            return pd.read_csv(path)
+        except Exception as e:
+            print(f"Gagal membaca file CSV: {e}")
+            return pd.DataFrame()
     return pd.DataFrame()
 
 def input_maintenance(tanggal, alat, catatan):
