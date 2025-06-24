@@ -3,11 +3,14 @@ from utils.finance_tools import get_log_kas, input_kas
 from utils.task_monitor import get_tasks, update_task_status
 from utils.activity_logger import log_activity
 from utils.auth import is_logged_in
+import datetime
+import json
 import os
 import pandas as pd
-import openpyxl
 
 EXCEL_FOLDER = "data/bendahara/laporan_excel" 
+UPLOAD_GAJI_STATUS_FILE = "data/bendahara/gaji/upload_gaji_status.json"
+GAJI_FOLDER = "data/dokumen/bendahara/gaji"
 
 def show():
     if not is_logged_in():
@@ -15,7 +18,7 @@ def show():
         return
 
     st.title("💰 Bendahara Praktikum")
-    tab1, tab2, tab3, tab4 = st.tabs(["🧾 Input Transaksi", "📊 Log Keuangan", "📤 Upload Laporan Kas", "📌 Tugas Dari Koordinator"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🧾 Input Transaksi", "📊 Log Keuangan", "📤 Upload Laporan Kas", "🛠️ Pengaturan Upload Gaji", "📌 Tugas Dari Koordinator"])
 
     # 🧾 Tab Input Transaksi
     with tab1:
@@ -106,8 +109,51 @@ def show():
                             st.success(f"File '{fname}' berhasil dihapus.")
                             st.rerun()
 
-    #  📌 Tab Tugas Dari Koordinator
+    # 🛠️ Tab Pengaturan Upload Gaji
     with tab4:
+        st.subheader("🛠️ Pengaturan Upload Gaji")
+
+        # === Status Upload Gaji ===
+        status = False
+        if os.path.exists(UPLOAD_GAJI_STATUS_FILE):
+            with open(UPLOAD_GAJI_STATUS_FILE) as f:
+                status = json.load(f).get("aktif", False)
+
+        opsi = st.radio("Status Upload Gaji", ["Nonaktif", "Aktif"], index=1 if status else 0, horizontal=True)
+
+        if st.button("💾 Simpan Pengaturan"):
+            new_status = {"aktif": opsi == "Aktif"}
+            with open(UPLOAD_GAJI_STATUS_FILE, "w") as f:
+                json.dump(new_status, f)
+            log_activity(st.session_state.username, "Atur Status Upload Gaji", f"Status: {opsi}")
+            st.success(f"✅ Status upload gaji diubah menjadi **{opsi}**.")
+            st.rerun()
+
+        # === Daftar Upload Gaji ===
+        st.markdown("### 📄 Daftar Bukti Gaji yang Telah Diupload")
+
+        gaji_files = [f for f in os.listdir(GAJI_FOLDER) if f.endswith((".jpg", ".jpeg", ".png"))]
+
+        if not gaji_files:
+            st.info("Belum ada file bukti gaji yang diupload.")
+        else:
+            for f in sorted(gaji_files, reverse=True):
+                with st.expander(f"🧾 {f}"):
+                    file_path = os.path.join(GAJI_FOLDER, f)
+                    st.image(file_path, caption=f, use_container_width=True)
+
+                    col1, col2 = st.columns([0.7, 0.3])
+                    with col1:
+                        st.caption(f"📅 Upload Time: {datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%d %B %Y %H:%M:%S')}")
+                    with col2:
+                        if st.button("🗑️ Hapus", key=f"hapus_gaji_{f}"):
+                            os.remove(file_path)
+                            log_activity(st.session_state.username, "Hapus Bukti Gaji", f)
+                            st.success(f"✅ File `{f}` berhasil dihapus.")
+                            st.rerun()
+
+    #  📌 Tab Tugas Dari Koordinator
+    with tab5:
         st.subheader("📌 Daftar Tugas")
         tugas_divisi = get_tasks().get("bendahara", [])
 
