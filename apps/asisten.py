@@ -14,6 +14,8 @@ from utils.activity_logger import log_activity
 LAPORAN_MAINTENANCE_FILE = "data/hardware/laporan_maintenance.csv"
 EXCEL_FOLDER = "data/bendahara/laporan_excel"
 UPLOAD_GAJI_STATUS_FILE = "data/bendahara/gaji/upload_gaji_status.json"
+GAJI_FOLDER = "data/dokumen/bendahara/gaji"
+os.makedirs(GAJI_FOLDER, exist_ok=True)
 
 def show():
     if not is_logged_in() or st.session_state.role not in [
@@ -140,28 +142,36 @@ def show():
                         st.error(f"Gagal membuka file: {e}")
 
     # ======================== TAB 6: UPLOAD BUKTI GAJI ========================
+
     with tab6:
         st.subheader("🤑 Upload Bukti Gaji (Screenshot)")
-
+    
         status_upload = False
         if os.path.exists(UPLOAD_GAJI_STATUS_FILE):
             with open(UPLOAD_GAJI_STATUS_FILE) as f:
                 status_upload = json.load(f).get("aktif", False)
-
+    
         if status_upload:
             nama = st.text_input("Nama Lengkap", placeholder="Contoh: Andi Saputra")
-            nim = st.text_input("NIM", placeholder="Contoh: 1101223117")
-            bulan = st.text_input("Periode Gaji", placeholder="Contoh: 5")
+            nim = st.text_input("NIM", placeholder="Contoh: 1201201234")
+            bulan = st.text_input("Periode Gaji", placeholder="Contoh: Juni 2025")
+    
             bukti_gaji = st.file_uploader("Unggah Bukti Gaji (jpg/png)", type=["jpg", "jpeg", "png"])
-
+    
             if st.button("📤 Kirim Bukti Gaji"):
                 if not all([nama.strip(), nim.strip(), bulan.strip(), bukti_gaji]):
                     st.error("⚠️ Lengkapi semua kolom dan file terlebih dahulu.")
                 else:
                     ext = bukti_gaji.name.split(".")[-1]
-                    filename = f"{nama}_{nim}.{ext}"
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    
+                    filename = f"gaji_{safe_nama}_{safe_nim}_{timestamp}.{ext}"
                     save_file(bukti_gaji, subfolder="bendahara/gaji", new_filename=filename)
                     log_activity(st.session_state.username, "Upload Bukti Gaji", filename)
+    
                     st.success(f"✅ Bukti gaji bulan {bulan} berhasil diupload sebagai `{filename}`.")
+    
+                    # Optional: Tampilkan preview hasil upload
+                    st.image(os.path.join(GAJI_FOLDER, filename), caption="📄 Preview Bukti Gaji", use_column_width=True)
         else:
             st.warning("📢 Upload bukti gaji belum dibuka oleh bendahara.")
