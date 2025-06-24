@@ -11,6 +11,7 @@ import pandas as pd
 EXCEL_FOLDER = "data/bendahara/laporan_excel" 
 UPLOAD_GAJI_STATUS_FILE = "data/bendahara/gaji/upload_gaji_status.json"
 GAJI_FOLDER = "data/dokumen/bendahara/gaji"
+os.makedirs("data/dokumen/bendahara/gaji", exist_ok=True)
 
 def show():
     if not is_logged_in():
