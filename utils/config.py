@@ -39,4 +39,7 @@ PAGE_TABS_BY_ROLE = {
         "📚 Divisi Manajemen Praktikum": manajemen_praktikum,
         "🧑‍🔧 Aktivitas Asisten": asisten
     },
+        "asisten": {
+        "🧑‍🔧 Aktivitas Asisten": asisten
+    }
 }
