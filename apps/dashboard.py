@@ -2,7 +2,7 @@ import streamlit as st
 from utils.auth import is_logged_in, register_user
 from utils.task_monitor import get_tasks, add_task, update_task_status
 from utils.activity_logger import log_activity, get_all_logs
-from utils.manual_backup import backup_data_to_drive
+from utils.manual_backup import list_subfolders, zip_selected_folders
 import plotly.express as px
 import pandas as pd
 import os
@@ -138,21 +138,26 @@ def show():
         else:
             st.info("Belum ada tugas yang dicatat.")
 
-    # Tab 4: Backup Manual ke Google Drive
+    # Tab 4: Backup Manual
     with tab4:
-        st.subheader("🗂️ Backup Manual Folder `data/` ke Google Drive")
+        st.subheader("🗂️ Backup Manual Folder `data/`")
 
-        if st.button("🚀 Backup Sekarang"):
-            with st.spinner("Proses backup ke Google Drive..."):
-                from utils.manual_backup import backup_data_to_drive
+        all_subfolders = list_subfolders()
+        selected_folders = st.multiselect("📁 Pilih subfolder yang ingin dibackup:", all_subfolders)
 
-                success, uploaded_files = backup_data_to_drive()
-                if success:
-                    st.success("✅ Backup selesai. File berikut berhasil diunggah:")
-                    for f in uploaded_files:
-                        st.markdown(f"- 📄 `{f}`")
-                else:
-                    st.error("❌ Backup gagal. Periksa kembali koneksi dan kredensial.")
+        if selected_folders:
+            if st.button("📦 Buat File ZIP"):
+                with st.spinner("Sedang membuat file backup..."):
+                    zip_name, zip_file = zip_selected_folders(selected_folders)
+                    st.success("✅ File ZIP berhasil dibuat!")
+                    st.download_button(
+                        label="⬇️ Download Backup",
+                        data=zip_file,
+                        file_name=zip_name,
+                        mime="application/zip"
+                    )
+        else:
+            st.info("Pilih minimal satu folder untuk backup.")
 
     # Tab 5: Log Aktivitas
     with tab5:
