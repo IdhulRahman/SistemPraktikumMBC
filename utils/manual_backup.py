@@ -1,64 +1,27 @@
 import os
-import pickle
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+import zipfile
+import io
+from datetime import datetime
 
-# ==================== KONFIGURASI ====================
-LOCAL_DATA_FOLDER = "data"
-DRIVE_FOLDER_ID = "18csNjLIthZHoX66gahnoZ6D3a8KxbDb4"  # Folder tujuan di Drive
-SCOPES = ["https://www.googleapis.com/auth/drive.file"]
-CLIENT_SECRET_FILE = "client_secret_1066251439820-va52ro5dl11euasch7pljcok414dclfb.apps.googleusercontent.com.json"
+DATA_FOLDER = "data"
 
-# ==================== AUTENTIKASI ====================
-def authenticate_drive():
-    creds = None
-    if os.path.exists("token.pickle"):
-        with open("token.pickle", "rb") as token:
-            creds = pickle.load(token)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open("token.pickle", "wb") as token:
-            pickle.dump(creds, token)
-    return build("drive", "v3", credentials=creds)
+def list_subfolders(folder=DATA_FOLDER):
+    return [
+        name for name in os.listdir(folder)
+        if os.path.isdir(os.path.join(folder, name))
+    ]
 
-# ==================== CEK & UPLOAD ====================
-def upload_file(service, filepath, relative_path, parent_id):
-    filename = os.path.basename(filepath)
-
-    # Cek apakah file sudah ada di folder Drive
-    query = f"name='{filename}' and '{parent_id}' in parents and trashed=false"
-    result = service.files().list(q=query, spaces='drive', fields='files(id)').execute()
-    file_list = result.get("files", [])
-
-    media = MediaFileUpload(filepath, resumable=True)
-    if file_list:
-        # Update file
-        file_id = file_list[0]["id"]
-        service.files().update(fileId=file_id, media_body=media).execute()
-        print(f"[🔁] Diperbarui: {relative_path}")
-    else:
-        # Upload file baru
-        file_metadata = {"name": filename, "parents": [parent_id]}
-        service.files().create(body=file_metadata, media_body=media, fields="id").execute()
-        print(f"[✅] Diunggah: {relative_path}")
-
-# ==================== BACKUP FOLDER ====================
-def backup_data_to_drive():
-    service = authenticate_drive()
-    total = 0
-    for root, _, files in os.walk(LOCAL_DATA_FOLDER):
-        for f in files:
-            full_path = os.path.join(root, f)
-            rel_path = os.path.relpath(full_path, LOCAL_DATA_FOLDER)
-            try:
-                upload_file(service, full_path, rel_path, DRIVE_FOLDER_ID)
-                total += 1
-            except Exception as e:
-                print(f"[⚠️] Gagal upload {rel_path}: {e}")
-    print(f"\n📦 Total file diproses: {total}")
+def zip_selected_folders(selected_folders, base_folder=DATA_FOLDER):
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for folder in selected_folders:
+            folder_path = os.path.join(base_folder, folder)
+            for root, _, files in os.walk(folder_path):
+                for file in files:
+                    abs_path = os.path.join(root, file)
+                    rel_path = os.path.relpath(abs_path, base_folder)
+                    zipf.write(abs_path, rel_path)
+    zip_buffer.seek(0)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"backup_data_{timestamp}.zip"
+    return filename, zip_buffer
