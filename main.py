@@ -1,34 +1,11 @@
 import streamlit as st
-import os
 from utils.auth import login, logout, is_logged_in
 from utils.config import PAGE_TABS_BY_ROLE
 from utils.firebase_sync import sync_data_from_cloud, sync_data_to_cloud
 
 st.set_page_config(page_title="Sistem Manajemen Praktikum MBC", layout="wide")
 
-def handle_cred_upload():
-    st.sidebar.subheader("📄 Upload Firebase Credential")
-    uploaded_cred = st.sidebar.file_uploader("Pilih file `firebase_cred.json`", type=["json"])
-    if uploaded_cred:
-        os.makedirs("utils", exist_ok=True)
-        cred_path = os.path.join("utils", "firebase_cred.json")
-        with open(cred_path, "wb") as f:
-            f.write(uploaded_cred.read())
-        st.sidebar.success("✅ Credential berhasil diupload.")
-        
-        # Force init dan sync ulang setelah upload
-        from utils.firebase_sync import init_firebase
-        init_firebase(force_reinit=True)
-        sync_data_from_cloud()
-        st.rerun()
-
-
 def main():
-    if not os.path.exists("utils/firebase_cred.json"):
-        st.warning("⚠️ Firebase credential belum tersedia.")
-        handle_cred_upload()
-        return
-
     # 🔄 Sinkronisasi awal saat aplikasi dibuka
     sync_data_from_cloud()
 
