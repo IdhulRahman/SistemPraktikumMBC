@@ -1,10 +1,14 @@
 import streamlit as st
 from utils.auth import login, logout, is_logged_in
 from utils.config import PAGE_TABS_BY_ROLE
+from utils.firebase_sync import sync_data_from_cloud, sync_data_to_cloud
 
 st.set_page_config(page_title="Sistem Manajemen Praktikum MBC", layout="wide")
 
 def main():
+    # 🔄 Sinkronisasi awal saat aplikasi dibuka
+    sync_data_from_cloud()
+
     if not is_logged_in():
         login()
         return
@@ -15,9 +19,11 @@ def main():
     st.sidebar.title("👤 Selamat datang")
     st.sidebar.markdown(f"**User:** `{username}`")
     st.sidebar.markdown(f"**Role:** `{role}`")
-    st.sidebar.button("🚪 Logout", on_click=logout)
 
-    # Role Koordinator bisa akses semua tab dari semua role
+    # 🔄 Sinkronisasi ke cloud saat logout
+    st.sidebar.button("🚪 Logout", on_click=lambda: [sync_data_to_cloud(), logout()])
+
+    # Role Koordinator bisa akses semua tab
     if role == "koordinator":
         combined_tabs = {}
         for r_tabs in PAGE_TABS_BY_ROLE.values():
