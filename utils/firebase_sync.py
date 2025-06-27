@@ -1,4 +1,3 @@
-# utils/firebase_sync.py
 import os
 import json
 import firebase_admin
