@@ -2,6 +2,9 @@ import os
 import json
 import firebase_admin
 from firebase_admin import credentials, firestore, storage
+from dotenv import load_dotenv
+
+load_dotenv()
 
 FIREBASE_CRED_PATH = "utils/firebase_cred.json"
 FIREBASE_BUCKET_NAME = os.getenv("FIREBASE_BUCKET_NAME")  # Ganti sesuai milikmu
