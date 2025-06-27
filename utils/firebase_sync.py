@@ -6,7 +6,7 @@ from firebase_admin import credentials, firestore, storage
 # Inisialisasi Firebase
 cred = credentials.Certificate("utils/firebase_cred.json")
 firebase_admin.initialize_app(cred, {
-    "storageBucket": "praktikummbc.appspot.com"
+    "storageBucket": "praktikummbc.firebasestorage.app"
 })
 
 db = firestore.client()
