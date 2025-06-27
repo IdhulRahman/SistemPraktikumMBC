@@ -10,8 +10,8 @@ def handle_cred_upload():
     st.sidebar.subheader("📄 Upload Firebase Credential")
     uploaded_cred = st.sidebar.file_uploader("Pilih file `firebase_cred.json`", type=["json"])
     if uploaded_cred:
-        os.makedirs("data", exist_ok=True)
-        cred_path = os.path.join("data", "firebase_cred.json")
+        os.makedirs("utils", exist_ok=True)
+        cred_path = os.path.join("utils", "firebase_cred.json")
         with open(cred_path, "wb") as f:
             f.write(uploaded_cred.read())
         st.sidebar.success("✅ Credential berhasil diupload.")
@@ -24,7 +24,7 @@ def handle_cred_upload():
 
 
 def main():
-    if not os.path.exists("data/firebase_cred.json"):
+    if not os.path.exists("utils/firebase_cred.json"):
         st.warning("⚠️ Firebase credential belum tersedia.")
         handle_cred_upload()
         return
