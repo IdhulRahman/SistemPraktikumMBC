@@ -15,7 +15,13 @@ def handle_cred_upload():
         with open(cred_path, "wb") as f:
             f.write(uploaded_cred.read())
         st.sidebar.success("✅ Credential berhasil diupload.")
+        
+        # Force init dan sync ulang setelah upload
+        from utils.firebase_sync import init_firebase
+        init_firebase(force_reinit=True)
+        sync_data_from_cloud()
         st.rerun()
+
 
 def main():
     if not os.path.exists("data/firebase_cred.json"):
