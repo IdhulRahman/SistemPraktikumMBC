@@ -6,11 +6,16 @@ TASK_FILE = "data/db/tasks.json"
 
 os.makedirs("data/db", exist_ok=True)
 
-# Daftar user default
-# Format= username: {password: "password123", role: "koordinator"}
-DEFAULT_USERS = {
-    "koordinator": {"password": "admin123", "role": "koordinator"},
-}
+def load_roots():
+    with open("utils/root.json") as f:
+        return json.load(f)
+
+DEFAULT_USERS = load_roots()
+
+username = "koordinator"
+if username in DEFAULT_USERS:
+    user_data = DEFAULT_USERS[username]
+    print(user_data["password"])
 
 def load_users():
     """
