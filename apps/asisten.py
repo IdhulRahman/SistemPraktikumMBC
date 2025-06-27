@@ -8,6 +8,7 @@ from utils.auth import is_logged_in
 from utils.file_handler import save_file, list_files, get_file_bytes
 from utils.scheduler import get_oncall_schedule, get_maintenance_schedule
 from utils.activity_logger import log_activity
+from utils.firebase_sync import sync_data_to_cloud
 
 # Konstanta path
 LAPORAN_MAINTENANCE_FILE = "data/hardware/laporan_maintenance.csv"
@@ -33,39 +34,93 @@ def show():
     with tab1:
         st.subheader("📤 Upload Scan Nilai & BAA")
 
-        nama_asisten = st.text_input("Nama Asisten", placeholder="Contoh: Andi", key="nama_asisten")
-        kelompok = st.text_input("Kelompok Praktikum", placeholder="Contoh: 5", key="kelompok_praktikum")
-        modul_ke = st.text_input("Modul Ke", placeholder="Contoh: 3", key="modul_ke")
+        # === Form Input ===
+        nama_asisten = st.text_input("👤 Nama Asisten", placeholder="Contoh: Andi", key="nama_asisten")
+        kelompok = st.text_input("👥 Kelompok Praktikum", placeholder="Contoh: 5", key="kelompok_praktikum")
+        modul_ke = st.selectbox("📘 Modul Ke", options=["1", "2", "3"], key="modul_ke")
 
-        nilai = st.file_uploader("Scan Nilai Praktikum", type=["pdf", "png", "jpg", "jpeg"], key="upload_nilai")
-        baa = st.file_uploader("Scan BAA", type=["pdf", "png", "jpg", "jpeg"], key="upload_baa")
+        minggu_ke = st.selectbox("📆 Minggu Ke", options=["1", "2"], key="minggu_ke")
+        hari = st.selectbox("🗓️ Hari", options=["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"], key="hari")
+        shift_ke = st.selectbox("⏱️ Shift Ke", options=["1", "2", "3", "4"], key="shift_ke")
 
+        nilai = st.file_uploader("📄 Scan Nilai Praktikum", type=["pdf", "png", "jpg", "jpeg"], key="upload_nilai")
+        baa = st.file_uploader("📄 Scan BAA", type=["pdf", "png", "jpg", "jpeg"], key="upload_baa")
+
+        # === Simpan File ===
         def save_file_with_asisten(file, subfolder, prefix):
             ext = file.name.split(".")[-1]
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            new_filename = f"{prefix}_{nama_asisten.replace(' ', '_')}_{timestamp}.{ext}"
-            save_file(file, subfolder=subfolder, new_filename=new_filename)
+            nama_bersih = nama_asisten.replace(" ", "_")
+            nama_file = f"{prefix}_minggu{minggu_ke}_{hari}_shift{shift_ke}_{nama_bersih}_{timestamp}.{ext}"
+            save_file(file, subfolder=subfolder, new_filename=nama_file)
 
+        # === Submit Button ===
         if st.button("📤 Kirim File"):
-            if not all([nama_asisten.strip(), kelompok.strip(), modul_ke.strip()]):
+            if not all([nama_asisten.strip(), kelompok.strip(), modul_ke.strip(), minggu_ke.strip(), hari.strip(), shift_ke.strip()]):
                 st.error("⚠️ Lengkapi semua kolom terlebih dahulu.")
             else:
                 if nilai:
-                    save_file_with_asisten(nilai, "asisten/nilai", f"nilai_kelompok_{kelompok}_modul_{modul_ke}")
+                    prefix_nilai = f"nilai_kelompok_{kelompok}_modul_{modul_ke}"
+                    save_file_with_asisten(nilai, "asisten/nilai", prefix_nilai)
                     log_activity(st.session_state.username, f"Upload Nilai Kelompok {kelompok}", nilai.name)
                     st.success(f"✅ Nilai Kelompok {kelompok} berhasil diupload.")
+                    uploaded = True
                 else:
                     st.warning("⚠️ File nilai belum diunggah.")
 
                 if baa:
-                    save_file_with_asisten(baa, "asisten/baa", f"baa_modul_{modul_ke}_kelompok_{kelompok}")
+                    prefix_baa = f"baa_kelompok_{kelompok}_modul_{modul_ke}"
+                    save_file_with_asisten(baa, "asisten/baa", prefix_baa)
                     log_activity(st.session_state.username, f"Upload BAA Modul {modul_ke}", baa.name)
                     st.success(f"✅ BAA Modul {modul_ke} berhasil diupload.")
+                    uploaded = True
                 else:
                     st.warning("⚠️ File BAA belum diunggah.")
 
+                if uploaded:
+                    sync_data_to_cloud()
+
     # ======================== TAB 2: JADWAL ONCALL & MAINTENANCE ========================
     with tab2:
+        st.markdown("---")
+        st.subheader("📘 Jadwal Mengajar Asisten")
+
+        jadwal_path = "data/jadwal/jadwal_asisten.json"
+        if os.path.exists(jadwal_path):
+            with open(jadwal_path, "r") as f:
+                data = json.load(f)
+
+            # Siapkan dataframe
+            rows = []
+            for asisten, items in data.items():
+                for entry in items:
+                    rows.append({
+                        "Asisten": asisten,
+                        "Kelompok": entry.get("kelompok", "-"),
+                        "Minggu": entry["minggu"],
+                        "Hari": entry["hari"],
+                        "Shift": entry["shift"],
+                        "Modul": entry["modul"]
+                    })
+
+            df_jadwal = pd.DataFrame(rows)
+
+            # === Filter berdasarkan nama asisten ===
+            nama_list = sorted(df_jadwal["Asisten"].unique())
+            nama_filter = st.selectbox("🔍 Filter Nama Asisten", ["Semua"] + nama_list)
+
+            if nama_filter != "Semua":
+                df_jadwal = df_jadwal[df_jadwal["Asisten"] == nama_filter]
+
+            if not df_jadwal.empty:
+                df_jadwal = df_jadwal.sort_values(by=["Minggu", "Hari", "Shift"])
+                df_jadwal = df_jadwal[["Asisten", "Kelompok", "Minggu", "Hari", "Shift", "Modul"]]
+                st.dataframe(df_jadwal, use_container_width=True, hide_index=True)
+            else:
+                st.info("Tidak ada jadwal mengajar yang sesuai.")
+        else:
+            st.info("Belum ada jadwal mengajar yang tercatat.")
+
         st.subheader("📌 Jadwal Oncall")
         df_oncall = get_oncall_schedule()
         if not df_oncall.empty:

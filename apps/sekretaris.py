@@ -1,9 +1,9 @@
 import streamlit as st
 from utils.auth import is_logged_in
 from utils.file_handler import save_file, list_files, delete_file
-from utils.notifier import check_deadline
 from utils.activity_logger import log_activity
 from utils.task_monitor import get_tasks, update_task_status  # ⬅️ tambahan
+from utils.firebase_sync import sync_data_to_cloud
 
 def show():
     if not is_logged_in() or st.session_state.role not in ["sekretaris", "koordinator"]:
@@ -27,6 +27,7 @@ def show():
                 path = save_file(dokumen, subfolder="sekretaris/resmi")
                 log_activity(st.session_state.username, "Upload Dokumen Resmi", dokumen.name)
                 st.success(f"📄 Dokumen '{dokumen.name}' berhasil diunggah.")
+                sync_data_to_cloud()
                 st.rerun()
 
         st.subheader("📂 Arsip Dokumen Resmi")
@@ -40,6 +41,7 @@ def show():
                     if delete_file(file, "sekretaris/resmi"):
                         log_activity(st.session_state.username, "Hapus Dokumen Resmi", file)
                         st.success(f"File '{file}' berhasil dihapus.")
+                        sync_data_to_cloud()
                         st.rerun()
 
     # === TAB 2: PRESENTASI ===
@@ -54,6 +56,7 @@ def show():
                 path = save_file(ppt, subfolder="sekretaris/presentasi")
                 log_activity(st.session_state.username, f"Upload Presentasi ({tujuan})", ppt.name)
                 st.success(f"📊 Presentasi '{ppt.name}' untuk tujuan **{tujuan}** berhasil diunggah.")
+                sync_data_to_cloud()
                 st.rerun()
 
         st.subheader("📂 Arsip Presentasi")
@@ -67,6 +70,7 @@ def show():
                     if delete_file(file, "sekretaris/presentasi"):
                         log_activity(st.session_state.username, "Hapus Presentasi", file)
                         st.success(f"File '{file}' berhasil dihapus.")
+                        sync_data_to_cloud()
                         st.rerun()
 
     # TAB 3 - Tugas dari Koordinator
@@ -100,4 +104,5 @@ def show():
                         if st.button("Ceklis", key=f"check_sekretaris_{idx}"):
                             update_task_status("sekretaris", idx, "selesai")
                             log_activity(st.session_state.username, "Ceklis Tugas", f"sekretaris: {t['tugas']}")
+                            sync_data_to_cloud()
                             st.rerun()

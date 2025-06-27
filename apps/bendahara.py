@@ -7,6 +7,7 @@ from utils.auth import is_logged_in
 from utils.finance_tools import get_log_kas, input_kas
 from utils.task_monitor import get_tasks, update_task_status
 from utils.activity_logger import log_activity
+from utils.firebase_sync import sync_data_to_cloud
 
 # Konstanta folder
 UPLOAD_GAJI_STATUS_FILE = "data/bendahara/gaji/upload_gaji_status.json"
@@ -51,6 +52,7 @@ def show():
                     input_kas(jenis, jumlah, keterangan, tanggal)
                     log_activity(st.session_state.username, f"Input {jenis}", f"{jumlah} - {keterangan}")
                     st.success("✅ Transaksi berhasil disimpan.")
+                    sync_data_to_cloud()
                     st.rerun()
                 else:
                     st.error("⚠️ Jumlah dan keterangan tidak boleh kosong.")
@@ -84,6 +86,7 @@ def show():
                     f.write(file.read())
                 log_activity(st.session_state.username, "Upload File Excel", file.name)
                 st.success(f"✅ File '{file.name}' berhasil diupload.")
+                sync_data_to_cloud()
                 st.rerun()
 
         st.markdown("### 📑 Daftar File Excel:")
@@ -104,6 +107,7 @@ def show():
                             os.remove(file_path)
                             log_activity(st.session_state.username, "Hapus File Excel", fname)
                             st.success(f"✅ File '{fname}' berhasil dihapus.")
+                            sync_data_to_cloud()
                             st.rerun()
 
     # ========================== 🛠️ TAB 4: Pengaturan Upload Gaji ==========================
@@ -124,6 +128,7 @@ def show():
                 json.dump(new_status, f)
             log_activity(st.session_state.username, "Atur Status Upload Gaji", f"Status: {opsi}")
             st.success(f"✅ Status upload gaji diubah menjadi **{opsi}**.")
+            sync_data_to_cloud()
             st.rerun()
     
         # === Daftar Upload Gaji ===
@@ -147,6 +152,7 @@ def show():
                             os.remove(file_path)
                             log_activity(st.session_state.username, "Hapus Bukti Gaji", f)
                             st.success(f"✅ File `{f}` berhasil dihapus.")
+                            sync_data_to_cloud()
                             st.rerun()
 
     # ========================== 📌 TAB 5: Tugas Dari Koordinator ==========================
@@ -176,4 +182,5 @@ def show():
                         if st.button("Ceklis", key=f"check_bendahara_{idx}"):
                             update_task_status("bendahara", idx, "selesai")
                             log_activity(st.session_state.username, "Ceklis Tugas", f"bendahara: {t['tugas']}")
+                            sync_data_to_cloud()
                             st.rerun()

@@ -3,6 +3,7 @@ from utils.auth import is_logged_in
 from utils.file_handler import save_file, list_files, delete_file
 from utils.activity_logger import log_activity
 from utils.task_monitor import get_tasks, update_task_status
+from utils.firebase_sync import sync_data_to_cloud
 
 def tampilkan_file_dengan_opsi(file_list, subfolder, label_folder):
     if not file_list:
@@ -45,6 +46,7 @@ def show():
                 save_file(file_modul, subfolder="akademik/modul")
                 log_activity(st.session_state.username, "Upload Modul", file_modul.name)
                 st.success("✅ Modul berhasil diupload.")
+                sync_data_to_cloud()
                 st.rerun()
 
         tampilkan_file_dengan_opsi(list_files("akademik/modul"), "akademik/modul", "Modul Praktikum")
@@ -58,6 +60,7 @@ def show():
                 save_file(file_soal, subfolder="akademik/soal")
                 log_activity(st.session_state.username, "Upload Soal TP/TA", file_soal.name)
                 st.success("✅ Soal berhasil diupload.")
+                sync_data_to_cloud()
                 st.rerun()
 
         tampilkan_file_dengan_opsi(list_files("akademik/soal"), "akademik/soal", "Soal TP/TA")
@@ -71,6 +74,7 @@ def show():
                 save_file(file_jurnal, subfolder="akademik/jurnal")
                 log_activity(st.session_state.username, "Upload Jurnal", file_jurnal.name)
                 st.success("✅ Jurnal berhasil diupload.")
+                sync_data_to_cloud()
                 st.rerun()
 
         tampilkan_file_dengan_opsi(list_files("akademik/jurnal"), "akademik/jurnal", "Jurnal Praktikum")
@@ -84,6 +88,7 @@ def show():
                 save_file(file_ppt, subfolder="akademik/ppt")
                 log_activity(st.session_state.username, "Upload Materi PPT", file_ppt.name)
                 st.success("✅ Materi berhasil diupload.")
+                sync_data_to_cloud()
                 st.rerun()
 
         tampilkan_file_dengan_opsi(list_files("akademik/ppt"), "akademik/ppt", "Materi PPT")
@@ -121,4 +126,5 @@ def show():
                                 "Ceklis Tugas",
                                 f"akademik praktikum: {t['tugas']}"
                             )
+                            sync_data_to_cloud()
                             st.rerun()

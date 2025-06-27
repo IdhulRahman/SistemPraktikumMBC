@@ -3,6 +3,7 @@ from utils.auth import is_logged_in
 from utils.activity_logger import log_activity
 from utils.file_handler import save_file, list_files, delete_file
 from utils.task_monitor import get_tasks, update_task_status
+from utils.firebase_sync import sync_data_to_cloud
 import os
 
 def tampilkan_file_dengan_opsi(file_list, subfolder, label_folder):
@@ -21,6 +22,7 @@ def tampilkan_file_dengan_opsi(file_list, subfolder, label_folder):
                     if delete_file(file, subfolder=subfolder):
                         log_activity(st.session_state.username, f"Hapus {label_folder}", file)
                         st.success(f"{label_folder} '{file}' berhasil dihapus.")
+                        sync_data_to_cloud()
                         st.rerun()
 
 def show():
@@ -45,6 +47,7 @@ def show():
                 save_file(file_rubrik, subfolder="manajemen_praktikum/rubrik")
                 log_activity(st.session_state.username, "Upload Rubrik Penilaian", file_rubrik.name)
                 st.success("✅ Dokumen rubrik berhasil diupload.")
+                sync_data_to_cloud()
                 st.rerun()
 
         tampilkan_file_dengan_opsi(
@@ -62,6 +65,7 @@ def show():
                 save_file(file_rundown, subfolder="manajemen_praktikum/rundown")
                 log_activity(st.session_state.username, "Upload Rundown Praktikum", file_rundown.name)
                 st.success("✅ Rundown berhasil diupload.")
+                sync_data_to_cloud()
                 st.rerun()
 
         tampilkan_file_dengan_opsi(
@@ -79,6 +83,7 @@ def show():
                 save_file(file_aturan, subfolder="manajemen_praktikum/aturan")
                 log_activity(st.session_state.username, "Upload Aturan Asisten", file_aturan.name)
                 st.success("✅ Dokumen aturan berhasil diupload.")
+                sync_data_to_cloud()
                 st.rerun()
 
         tampilkan_file_dengan_opsi(
@@ -114,5 +119,6 @@ def show():
                         if st.button("Ceklis", key=f"check_manajemen_praktikum_{idx}"):
                             update_task_status("manajemen_praktikum", idx, "selesai")
                             log_activity(st.session_state.username, "Ceklis Tugas", f"manajemen praktikum: {t['tugas']}")
+                            sync_data_to_cloud()
                             st.rerun()
 

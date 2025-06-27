@@ -3,6 +3,7 @@ import pandas as pd
 from utils.auth import is_logged_in
 from utils.task_monitor import get_tasks, update_task_status
 from utils.activity_logger import log_activity
+from utils.firebase_sync import sync_data_to_cloud
 import json
 import os
 from datetime import date
@@ -60,6 +61,7 @@ def show():
                 save_csv(INVENTARIS_FILE, df)
                 log_activity(st.session_state.username, "Tambah Inventaris", f"{alat} - {jumlah} - {keterangan}")
                 st.success("✅ Inventaris berhasil disimpan.")
+                sync_data_to_cloud()
                 st.rerun()
             else:
                 st.warning("⚠️ Nama alat tidak boleh kosong.")
@@ -99,6 +101,7 @@ def show():
                             df = df.drop(idx).reset_index(drop=True)
                             save_csv(INVENTARIS_FILE, df)
                             log_activity(st.session_state.username, "Hapus Inventaris", row["nama"])
+                            sync_data_to_cloud()
                             st.rerun()
 
             st.caption(f"📦 Total Seluruh Inventaris: **{total}** alat")
@@ -128,6 +131,7 @@ def show():
                 save_csv(MAINTENANCE_FILE, df)
                 log_activity(st.session_state.username, "Input Maintenance", f"{asisten} - {modul}")
                 st.success("Jadwal maintenance berhasil disimpan.")
+                sync_data_to_cloud()
                 st.rerun()
             else:
                 st.warning("Nama asisten dan modul tidak boleh kosong.")
@@ -173,6 +177,7 @@ def show():
                 save_csv(LAPORAN_MAINTENANCE_FILE, df)
                 log_activity(st.session_state.username, "Kirim Laporan Maintenance", alat)
                 st.success("Laporan berhasil dikirim.")
+                sync_data_to_cloud()
                 st.rerun()
             else:
                 st.warning("Semua kolom wajib diisi.")
@@ -214,4 +219,5 @@ def show():
                         if st.button("Ceklis", key=f"check_hardware_{idx}"):
                             update_task_status("hardware", idx, "selesai")
                             log_activity(st.session_state.username, "Ceklis Tugas", f"hardware & software: {t['tugas']}")
+                            sync_data_to_cloud()
                             st.rerun()
