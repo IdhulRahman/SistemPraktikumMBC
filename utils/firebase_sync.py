@@ -3,7 +3,7 @@ import json
 import firebase_admin
 from firebase_admin import credentials, firestore, storage
 
-FIREBASE_CRED_PATH = "data/firebase_cred.json"
+FIREBASE_CRED_PATH = "utils/firebase_cred.json"
 FIREBASE_BUCKET_NAME = os.getenv("FIREBASE_BUCKET_NAME")  # Ganti sesuai milikmu
 
 firebase_initialized = False
