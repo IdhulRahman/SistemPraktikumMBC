@@ -3,14 +3,16 @@ import json
 import firebase_admin
 from firebase_admin import credentials, firestore, storage
 
-# Inisialisasi Firebase
-cred = credentials.Certificate("utils/firebase_cred.json")
-firebase_admin.initialize_app(cred, {
-    "storageBucket": "praktikummbc.firebasestorage.app"
-})
+# Hanya inisialisasi jika belum ada app
+if not firebase_admin._apps:
+    cred = credentials.Certificate("utils/test.json")
+    firebase_admin.initialize_app(cred, {
+        "storageBucket": "praktikummbc.firebasestorage.app"
+    })
 
 db = firestore.client()
 bucket = storage.bucket()
+
 
 def upload_file_to_storage(local_path, cloud_path):
     blob = bucket.blob(cloud_path)
