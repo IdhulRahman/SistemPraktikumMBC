@@ -1,3 +1,0 @@
-# Ignore root user config & Firebase credentials
-utils/root.json
-utils/firebase_cred.json
