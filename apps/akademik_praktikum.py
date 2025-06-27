@@ -17,7 +17,7 @@ def tampilkan_file_dengan_opsi(file_list, subfolder, label_folder):
             with col1:
                 st.markdown(f"Nama File: `{file}`")
             with col2:
-                if st.button("🗑️ Hapus", key=f"{label_folder}_{file}"):
+                if st.button("🗑️ Hapus", key=f"{label_folder}_{file}_akademik"):
                     if delete_file(file, subfolder=subfolder):
                         log_activity(st.session_state.username, f"Hapus {label_folder}", file)
                         st.success(f"{label_folder} '{file}' berhasil dihapus.")
