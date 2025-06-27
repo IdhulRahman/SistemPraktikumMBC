@@ -1,13 +1,25 @@
 import streamlit as st
 from utils.auth import login, logout, is_logged_in
 from utils.config import PAGE_TABS_BY_ROLE
-from utils.firebase_sync import sync_data_from_cloud, sync_data_to_cloud
+from utils.firebase_sync import sync_data_from_cloud, sync_data_to_cloud, test_firebase_connections
 
 st.set_page_config(page_title="Sistem Manajemen Praktikum MBC", layout="wide")
 
 def main():
-    # 🔄 Sinkronisasi awal saat aplikasi dibuka
-    sync_data_from_cloud()
+    # 🔌 Cek koneksi Firebase
+    firestore_ok, storage_ok = test_firebase_connections()
+
+    with st.sidebar:
+        st.subheader("🌐 Status Koneksi Firebase")
+        st.markdown(f"**Firestore:** {'🟢 Terhubung' if firestore_ok else '🔴 Gagal'}")
+        st.markdown(f"**Storage:** {'🟢 Terhubung' if storage_ok else '🔴 Gagal'}")
+
+    # 🔄 Sinkronisasi awal hanya jika koneksi sukses
+    if firestore_ok and storage_ok:
+        sync_data_from_cloud()
+    else:
+        st.error("Gagal terhubung ke Firebase. Periksa kembali credential dan koneksi internet.")
+        return
 
     if not is_logged_in():
         login()
