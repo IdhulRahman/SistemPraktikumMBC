@@ -4,22 +4,28 @@ import firebase_admin
 from firebase_admin import credentials, firestore, storage
 
 FIREBASE_CRED_PATH = "data/firebase_cred.json"
-FIREBASE_BUCKET_NAME = "praktikummbc.firebasestorage.app"  # Ganti sesuai milikmu
+FIREBASE_BUCKET_NAME = "gs://praktikummbc.firebasestorage.app"  # Ganti sesuai milikmu
 
 firebase_initialized = False
 db, bucket = None, None
 
-def init_firebase():
+def init_firebase(force_reinit=False):
     global firebase_initialized, db, bucket
 
-    if firebase_initialized or not os.path.exists(FIREBASE_CRED_PATH):
+    # Cek ulang jika file firebase_cred.json sudah tersedia setelah upload
+    if firebase_initialized and not force_reinit:
+        return
+
+    if not os.path.exists(FIREBASE_CRED_PATH):
+        print("❌ Firebase credential tidak ditemukan.")
         return
 
     try:
         cred = credentials.Certificate(FIREBASE_CRED_PATH)
-        firebase_admin.initialize_app(cred, {
-            "storageBucket": FIREBASE_BUCKET_NAME
-        })
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(cred, {
+                "storageBucket": FIREBASE_BUCKET_NAME
+            })
         db = firestore.client()
         bucket = storage.bucket()
         firebase_initialized = True
