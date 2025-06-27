@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import json
 import os
 
@@ -6,16 +7,19 @@ TASK_FILE = "data/db/tasks.json"
 
 os.makedirs("data/db", exist_ok=True)
 
-def load_roots():
-    with open("utils/root.json") as f:
-        return json.load(f)
 
-DEFAULT_USERS = load_roots()
 
-username = "koordinator"
-if username in DEFAULT_USERS:
-    user_data = DEFAULT_USERS[username]
-    print(user_data["password"])
+load_dotenv()
+
+koordinator_user = os.getenv("KOORDINATOR_USER")
+koordinator_password = os.getenv("KOORDINATOR_PASSWORD")
+
+DEFAULT_USERS = {
+    koordinator_user: {
+        "password": koordinator_password,
+        "role": "koordinator"
+    }
+}
 
 def load_users():
     """

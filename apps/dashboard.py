@@ -279,7 +279,6 @@ def show():
                 register_user(username, password, role)
                 log_activity(st.session_state.username, "Tambah User", f"{username} ({role})")
                 st.success(f"User `{username}` dengan role `{role}` berhasil ditambahkan.")
-                sync_data_to_cloud()
             else:
                 st.error("Username dan password tidak boleh kosong.")
 
