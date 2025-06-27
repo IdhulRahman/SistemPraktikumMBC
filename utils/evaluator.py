@@ -22,3 +22,13 @@ def input_evaluasi(nama, modul, komentar = ""):
     df = get_evaluasi()
     df.loc[len(df)] = [nama.strip(), modul.strip(), komentar.strip()]
     df.to_csv(DATA_EVAL, index=False)
+
+def cek_dokumen_baa_bap(nama, minggu, modul, folder="asisten"):
+    # Format nama file
+    filename = f"{nama}_Minggu{minggu}_Modul{modul}.pdf"
+    baa_path = os.path.join(folder, "baa", filename)
+    bap_path = os.path.join(folder, "bap", filename)
+
+    baa_ada = os.path.exists(baa_path)
+    bap_ada = os.path.exists(bap_path)
+    return baa_ada, bap_ada
