@@ -5,7 +5,7 @@ from firebase_admin import credentials, firestore, storage
 
 # Hanya inisialisasi jika belum ada app
 if not firebase_admin._apps:
-    cred = credentials.Certificate("utils/test.json")
+    cred = credentials.Certificate("utils/firebase_cred.json")
     firebase_admin.initialize_app(cred, {
         "storageBucket": "praktikummbc.firebasestorage.app"
     })
