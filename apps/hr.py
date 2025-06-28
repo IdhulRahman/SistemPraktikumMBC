@@ -114,7 +114,7 @@ def show():
                 folder_path = os.path.join("data/dokumen", "asisten", tipe)
                 nama_asisten = asisten.replace(" ", "_")
                 hari = hari.lower()
-                pattern = f"{tipe}_kelompok_{kelompok}_modul_{modul}_minggu{minggu}_{hari}_shift{shift}_{nama_asisten}_*.*"
+                pattern = f"{tipe}_kelompok_{kelompok}_modul_{modul}_minggu{minggu}_{hari}_shift{shift}_{nama_asisten}*.*"
                 matched_files = glob.glob(os.path.join(folder_path, pattern))
                 return len(matched_files) > 0
 
