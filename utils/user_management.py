@@ -3,9 +3,6 @@ from utils.db import load_users, save_users
 from utils.firebase_sync import sync_data_to_cloud
 from firebase_admin import firestore
 
-global db
-db = firestore.client()
-
 def ganti_akun_sidebar():
     with st.expander("🔐 Ganti Username / Password"):
         st.info("Masukkan password lama dan data baru Anda.")
