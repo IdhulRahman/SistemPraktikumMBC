@@ -1,5 +1,6 @@
 import os
 import glob
+from utils.firebase_sync import delete_from_cloud_storage
 
 # Folder dasar penyimpanan dokumen
 UPLOAD_FOLDER = "data/dokumen"
@@ -63,16 +64,25 @@ def list_files(subfolder=""):
 
 def delete_file(filename, subfolder=""):
     """
-    Menghapus file dari subfolder berdasarkan nama file.
-    - Mengembalikan True jika berhasil, False jika gagal.
+    Menghapus file dari folder lokal dan Firebase Storage.
+    - `filename`: nama file yang akan dihapus
+    - `subfolder`: subfolder dalam data/dokumen/
+    - Return True jika berhasil dihapus secara lokal (dan mencoba hapus dari cloud)
     """
     try:
+        # Amankan nama file
         safe_filename = os.path.basename(filename)
         file_path = os.path.join(UPLOAD_FOLDER, subfolder, safe_filename)
 
+        # Hapus file lokal
         if os.path.exists(file_path):
             os.remove(file_path)
+
+            # Hapus file dari Firebase Storage
+            cloud_path = os.path.join("dokumen", subfolder, safe_filename).replace("\\", "/")
+            delete_from_cloud_storage(cloud_path)
+
             return True
     except Exception as e:
-        print(f"[ERROR] Gagal menghapus file: {e}")
+        print(f"[ERROR] Gagal menghapus file lokal/cloud: {e}")
     return False
