@@ -21,6 +21,7 @@ def tampilkan_file_dengan_opsi(file_list, subfolder, label_folder):
                     if delete_file(file, subfolder=subfolder):
                         log_activity(st.session_state.username, f"Hapus {label_folder}", file)
                         st.success(f"{label_folder} '{file}' berhasil dihapus.")
+                        sync_data_to_cloud()
                         st.rerun()
 
 def show():
