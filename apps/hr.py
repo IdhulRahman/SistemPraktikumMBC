@@ -114,7 +114,7 @@ def show():
                 folder_path = os.path.join("data/dokumen", "asisten", tipe)
                 nama_asisten = asisten.replace(" ", "_")
                 hari = hari.lower()
-                pattern = f"{tipe}_kelompok_{kelompok}_modul_{modul}_minggu{minggu}_{hari}_shift{shift}_{nama_asisten}*.*"
+                pattern = f"{tipe}_kelompok_{kelompok}_modul_{modul}_minggu{minggu}_{hari}_shift{shift}*.*"
                 matched_files = glob.glob(os.path.join(folder_path, pattern))
                 return len(matched_files) > 0
 
@@ -131,8 +131,8 @@ def show():
                         "Hari": entry["hari"],
                         "Shift": entry["shift"],
                         "Modul": entry["modul"],
-                        "✅ BAA": "✅" if check_file_uploaded(asisten, "baa", entry["kelompok"], entry["modul"], entry["minggu"], entry["hari"], entry["shift"]) else "❌",
-                        "✅ Nilai": "✅" if check_file_uploaded(asisten, "nilai", entry["kelompok"], entry["modul"], entry["minggu"], entry["hari"], entry["shift"]) else "❌",
+                        "✅ BAA": "✅" if check_file_uploaded("baa", entry["kelompok"], entry["modul"], entry["minggu"], entry["hari"], entry["shift"]) else "❌",
+                        "✅ Nilai": "✅" if check_file_uploaded("nilai", entry["kelompok"], entry["modul"], entry["minggu"], entry["hari"], entry["shift"]) else "❌",
                         "☑️ Ceklis HR": "✅" if entry["verifikasi_hr_baa"] or entry["verifikasi_hr_nilai"] else "❌",
                         "Index": i
                     })
