@@ -2,19 +2,9 @@ import json
 import os
 import streamlit as st
 from utils.firebase_sync import upload_to_storage, download_from_storage
+from utils.db import load_users, save_users
 
 USERS_FILE = "data/users.json"
-
-def load_users():
-    if not os.path.exists(USERS_FILE):
-        download_from_storage("users.json", USERS_FILE)
-    with open(USERS_FILE, "r") as f:
-        return json.load(f)
-
-def save_users(users):
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f, indent=2)
-    upload_to_storage(USERS_FILE, "users.json")
 
 def ganti_akun_sidebar():
     with st.expander("🔐 Ganti Username / Password"):
