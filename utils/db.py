@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-from utils.firebase_sync import upload_to_storage, get_db
 import json
 import os
 
@@ -31,31 +30,11 @@ def load_users():
         return json.load(f)
 
 def save_users(users):
-    users_lower = {
-        uname.lower(): {
-            "password": data["password"],
-            "role": data["role"]
-        }
-        for uname, data in users.items()
-    }
-
-    # Simpan ke file lokal
+    """
+    Menyimpan daftar user ke file.
+    """
     with open(USER_FILE, "w") as f:
-        json.dump(users_lower, f, indent=2)
-
-    # Upload ke Storage
-    try:
-        upload_to_storage(USER_FILE, "users.json")
-    except Exception as e:
-        print(f"⚠️ Gagal upload users.json ke Storage: {e}")
-
-    # Simpan ke Firestore
-    try:
-        db = get_db()  # ✅ ambil instance db baru
-        for uname, data in users_lower.items():
-            db.collection("auth").document(uname).set(data)
-    except Exception as e:
-        print(f"⚠️ Gagal upload users ke Firestore: {e}")
+        json.dump(users, f, indent=2)
 
 def load_tasks():
     """
