@@ -19,15 +19,13 @@ def tampilkan_file_dengan_opsi(file_list, subfolder, label_folder):
             with col2:
                 tombol_key = f"{label_folder}_hapus_{i}"
                 if st.button("🗑️ Hapus", key=tombol_key):
-                    # Tambahkan konfirmasi
-                    if st.confirm(f"Apakah Anda yakin ingin menghapus file '{file}'?"):
-                        if delete_file(file, subfolder=subfolder):
-                            log_activity(st.session_state.username, f"Hapus {label_folder}", file)
-                            st.success(f"{label_folder} '{file}' berhasil dihapus.")
-                            sync_data_to_cloud()
-                            st.rerun()
-                        else:
-                            st.error(f"Gagal menghapus {label_folder} '{file}'.")
+                    if delete_file(file, subfolder=subfolder):
+                        log_activity(st.session_state.username, f"Hapus {label_folder}", file)
+                        st.success(f"{label_folder} '{file}' berhasil dihapus.")
+                        sync_data_to_cloud()
+                        st.rerun()
+                    else:
+                        st.error(f"Gagal menghapus {label_folder} '{file}'.")
 
 def show():
     if not is_logged_in() or st.session_state.role not in ["akademik", "koordinator"]:
