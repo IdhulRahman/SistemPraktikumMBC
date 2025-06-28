@@ -12,7 +12,7 @@ from utils.firebase_sync import sync_data_to_cloud
 
 # Konstanta path
 LAPORAN_MAINTENANCE_FILE = "data/hardware/laporan_maintenance.csv"
-EXCEL_FOLDER = "data/bendahara/laporan_excel"
+EXCEL_FOLDER = "data/dokumen/bendahara/laporan_excel"
 UPLOAD_GAJI_STATUS_FILE = "data/bendahara/gaji/upload_gaji_status.json"
 GAJI_FOLDER = "data/dokumen/bendahara/gaji"
 os.makedirs(GAJI_FOLDER, exist_ok=True)
@@ -90,36 +90,43 @@ def show():
             with open(jadwal_path, "r") as f:
                 data = json.load(f)
 
-            # Siapkan dataframe
-            rows = []
-            for asisten, items in data.items():
-                for entry in items:
-                    rows.append({
-                        "Asisten": asisten,
-                        "Kelompok": entry.get("kelompok", "-"),
-                        "Minggu": entry["minggu"],
-                        "Hari": entry["hari"],
-                        "Shift": entry["shift"],
-                        "Modul": entry["modul"]
-                    })
+            if data:
+                rows = []
+                for asisten, items in data.items():
+                    for entry in items:
+                        rows.append({
+                            "Asisten": asisten,
+                            "Kelompok": entry.get("kelompok", "-"),
+                            "Minggu": entry.get("minggu", "-"),
+                            "Hari": entry.get("hari", "-"),
+                            "Shift": entry.get("shift", "-"),
+                            "Modul": entry.get("modul", "-")
+                        })
 
-            df_jadwal = pd.DataFrame(rows)
+                df_jadwal = pd.DataFrame(rows)
 
-            # === Filter berdasarkan nama asisten ===
-            nama_list = sorted(df_jadwal["Asisten"].unique())
-            nama_filter = st.selectbox("🔍 Filter Nama Asisten", ["Semua"] + nama_list)
+                if not df_jadwal.empty:
+                    # === Filter berdasarkan Minggu ===
+                    minggu_list = sorted(df_jadwal["Minggu"].unique())
+                    filter_minggu = st.selectbox("🔎 Filter Minggu", ["Semua"] + minggu_list)
 
-            if nama_filter != "Semua":
-                df_jadwal = df_jadwal[df_jadwal["Asisten"] == nama_filter]
+                    if filter_minggu != "Semua":
+                        df_jadwal = df_jadwal[df_jadwal["Minggu"] == filter_minggu]
 
-            if not df_jadwal.empty:
-                df_jadwal = df_jadwal.sort_values(by=["Minggu", "Hari", "Shift"])
-                df_jadwal = df_jadwal[["Asisten", "Kelompok", "Minggu", "Hari", "Shift", "Modul"]]
-                st.dataframe(df_jadwal, use_container_width=True, hide_index=True)
+                    # === Tampilkan DataFrame ===
+                    if not df_jadwal.empty:
+                        df_jadwal = df_jadwal.sort_values(by=["Minggu", "Hari", "Shift"])
+                        df_jadwal = df_jadwal[["Asisten", "Kelompok", "Minggu", "Hari", "Shift", "Modul"]]
+                        st.dataframe(df_jadwal, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("Tidak ada jadwal yang cocok dengan filter.")
+                else:
+                    st.info("Data jadwal kosong.")
             else:
-                st.info("Tidak ada jadwal mengajar yang sesuai.")
+                st.info("File jadwal ditemukan, tetapi belum berisi data.")
         else:
-            st.info("Belum ada jadwal mengajar yang tercatat.")
+            st.info("Belum ada file jadwal yang tersedia.")
+
 
         st.subheader("📌 Jadwal Oncall")
         df_oncall = get_oncall_schedule()
@@ -217,15 +224,14 @@ def show():
                     st.error("⚠️ Lengkapi semua kolom dan file terlebih dahulu.")
                 else:
                     ext = bukti_gaji.name.split(".")[-1]
-                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                     
                     filename = f"{nama}_{nim}.{ext}"
                     save_file(bukti_gaji, subfolder="bendahara/gaji", new_filename=filename)
                     log_activity(st.session_state.username, "Upload Bukti Gaji", filename)
     
                     st.success(f"✅ Bukti gaji bulan {bulan} berhasil diupload sebagai `{filename}`.")
-    
-                    # Optional: Tampilkan preview hasil upload
+                    sync_data_to_cloud()
+
                     st.image(os.path.join(GAJI_FOLDER, filename), caption="📄 Preview Bukti Gaji", use_container_width=True)
         else:
             st.warning("📢 Upload bukti gaji belum dibuka oleh bendahara.")

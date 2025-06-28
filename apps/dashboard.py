@@ -269,18 +269,16 @@ def show():
     # Tab 4: Tambah User
     with tab4:
         st.subheader("➕ Tambah User Baru")
-        username_input = st.text_input("Username")
-        username = username_input.lower() if username_input else ""
+        username = st.text_input("Username")
         password = st.text_input("Password", type="password")
         role = st.selectbox("Role", [
-            "koordinator", "sekretaris", "bendahara", "hr", "akademik", "hardware", "manajemen_praktikum"
+            "koordinator", "sekretaris", "bendahara", "hr", "asisten", "akademik", "hardware", "manajemen_praktikum"
         ])
         if st.button("Daftarkan"):
             if username and password:
                 register_user(username, password, role)
                 log_activity(st.session_state.username, "Tambah User", f"{username} ({role})")
                 st.success(f"User `{username}` dengan role `{role}` berhasil ditambahkan.")
-                sync_data_to_cloud()
             else:
                 st.error("Username dan password tidak boleh kosong.")
 
@@ -355,7 +353,6 @@ def show():
                             zip_ref.extractall("data")
 
                         st.success("✅ Backup berhasil di-restore ke folder data/!")
-                        sync_data_to_cloud()
                         log_activity(st.session_state.username, "Restore Backup", uploaded_zip.name)
                 except Exception as e:
                     st.error(f"❌ Gagal mengekstrak file ZIP: {e}")

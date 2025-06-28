@@ -4,7 +4,6 @@ from utils.auth import is_logged_in
 from utils.task_monitor import get_tasks, update_task_status
 from utils.activity_logger import log_activity
 from utils.firebase_sync import sync_data_to_cloud
-import json
 import os
 from datetime import date
 
@@ -36,7 +35,7 @@ def show():
         "📌 Tugas Dari Koordinator"
     ])
 
-    # === TAB 1: INVENTARIS ===
+# === TAB 1: INVENTARIS ===
     with tab1:
         st.subheader("📦 Manajemen Inventaris Alat")
 
@@ -65,6 +64,7 @@ def show():
                 st.rerun()
             else:
                 st.warning("⚠️ Nama alat tidak boleh kosong.")
+
         # Tampilkan daftar inventaris
         st.markdown("### 📋 Daftar Inventaris")
         df = load_csv(INVENTARIS_FILE)
@@ -102,15 +102,17 @@ def show():
                             save_csv(INVENTARIS_FILE, df)
                             log_activity(st.session_state.username, "Hapus Inventaris", row["nama"])
                             sync_data_to_cloud()
+                            st.success(f"✅ Inventaris '{row['nama']}' berhasil dihapus.")
                             st.rerun()
 
             st.caption(f"📦 Total Seluruh Inventaris: **{total}** alat")
         else:
             st.info("Belum ada data inventaris.")
 
-    # === TAB 2: JADWAL MAINTENANCE ===
+# === TAB 2: JADWAL MAINTENANCE ===
     with tab2:
         st.subheader("🗓️ Input Jadwal Maintenance oleh Asisten")
+
         with st.form("form_maintenance"):
             asisten = st.text_input("Nama Asisten")
             modul = st.text_input("Modul yang Dicek")
@@ -130,33 +132,43 @@ def show():
                 df = pd.concat([df, new], ignore_index=True)
                 save_csv(MAINTENANCE_FILE, df)
                 log_activity(st.session_state.username, "Input Maintenance", f"{asisten} - {modul}")
-                st.success("Jadwal maintenance berhasil disimpan.")
+                st.success("✅ Jadwal maintenance berhasil disimpan.")
                 sync_data_to_cloud()
                 st.rerun()
             else:
-                st.warning("Nama asisten dan modul tidak boleh kosong.")
-                
+                st.warning("⚠️ Nama asisten dan modul tidak boleh kosong.")
+
         st.markdown("### 📋 Daftar Jadwal Maintenance")
         df = load_csv(MAINTENANCE_FILE)
 
         if not df.empty:
-            for _, row in df.iterrows():
+            for i, row in df.iterrows():
                 with st.container():
-                    st.markdown(f"""
-                        <div style="border:1px solid #ccc; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                            <b>📅 Tanggal:</b> <code>{row['tanggal']}</code><br>
-                            <b>👤 Asisten:</b> {row['asisten']}<br>
-                            <b>🧪 Modul:</b> {row['modul']}<br>
-                            {"<b>📝 Catatan:</b> " + row['catatan'] if row['catatan'] else ""}
-                        </div>
-                    """, unsafe_allow_html=True)
+                    col1, col2 = st.columns([0.85, 0.15])
+                    with col1:
+                        st.markdown(f"""
+                            <div style="border:1px solid #ccc; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                                <b>📅 Tanggal:</b> <code>{row['tanggal']}</code><br>
+                                <b>👤 Asisten:</b> {row['asisten']}<br>
+                                <b>🧪 Modul:</b> {row['modul']}<br>
+                                {"<b>📝 Catatan:</b> " + row['catatan'] if row['catatan'] else ""}
+                            </div>
+                        """, unsafe_allow_html=True)
+                    with col2:
+                        if st.button("🗑️ Hapus", key=f"hapus_jadwal_{i}"):
+                            df = df.drop(i).reset_index(drop=True)
+                            save_csv(MAINTENANCE_FILE, df)
+                            log_activity(st.session_state.username, "Hapus Jadwal Maintenance", row['modul'])
+                            sync_data_to_cloud()
+                            st.success(f"✅ Jadwal maintenance untuk modul '{row['modul']}' berhasil dihapus.")
+                            st.rerun()
         else:
             st.info("Belum ada jadwal maintenance.")
 
-
-    # === TAB 3: LAPORAN MAINTENANCE ===
+# === TAB 3: LAPORAN MAINTENANCE ===
     with tab3:
         st.subheader("📄 Laporan Maintenance Alat (diisi Asisten)")
+
         with st.form("form_laporan"):
             alat = st.text_input("Nama Alat", placeholder="Contoh: Oscilloscope")
             modul = st.text_input("Modul Ke", placeholder="Contoh: 2")
@@ -176,21 +188,36 @@ def show():
                 df = pd.concat([df, new], ignore_index=True)
                 save_csv(LAPORAN_MAINTENANCE_FILE, df)
                 log_activity(st.session_state.username, "Kirim Laporan Maintenance", alat)
-                st.success("Laporan berhasil dikirim.")
+                st.success("✅ Laporan berhasil dikirim.")
                 sync_data_to_cloud()
                 st.rerun()
             else:
-                st.warning("Semua kolom wajib diisi.")
+                st.warning("⚠️ Semua kolom wajib diisi.")
 
         with st.expander("📊 Lihat Daftar Laporan Maintenance"):
             df = load_csv(LAPORAN_MAINTENANCE_FILE)
             if not df.empty:
-                df.index += 1
-                st.dataframe(df, use_container_width=True)
+                for i, row in df.iterrows():
+                    with st.expander(f"📅 {row['tanggal']} - {row['alat']} ({row['modul']})", expanded=False):
+                        st.markdown(f"""
+                            <b>👤 Asisten:</b> {row['asisten']}  
+                            <b>📅 Tanggal:</b> {row['tanggal']}  
+                            <b>🔧 Alat:</b> {row['alat']}  
+                            <b>📘 Modul:</b> {row['modul']}  
+                            <b>📝 Catatan:</b> {row['catatan']}
+                        """, unsafe_allow_html=True)
+
+                        if st.button("🗑️ Hapus", key=f"hapus_laporan_{i}"):
+                            df = df.drop(i).reset_index(drop=True)
+                            save_csv(LAPORAN_MAINTENANCE_FILE, df)
+                            log_activity(st.session_state.username, "Hapus Laporan Maintenance", row['alat'])
+                            sync_data_to_cloud()
+                            st.success(f"✅ Laporan untuk alat '{row['alat']}' berhasil dihapus.")
+                            st.rerun()
             else:
                 st.info("Belum ada laporan yang dikirim.")
 
-    # === TAB 4: TUGAS KOORDINATOR ===
+# === TAB 4: TUGAS KOORDINATOR ===
     with tab4:
         st.subheader("📌 Daftar Tugas")
         tugas_hardware = get_tasks().get("hardware", [])

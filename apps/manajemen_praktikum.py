@@ -1,10 +1,11 @@
+import os
 import streamlit as st
 from utils.auth import is_logged_in
-from utils.activity_logger import log_activity
 from utils.file_handler import save_file, list_files, delete_file
+from utils.activity_logger import log_activity
 from utils.task_monitor import get_tasks, update_task_status
-from utils.firebase_sync import sync_data_to_cloud
-import os
+from utils.firebase_sync import upload_file_to_storage, delete_from_storage
+
 
 def tampilkan_file_dengan_opsi(file_list, subfolder, label_folder):
     if not file_list:
@@ -18,12 +19,16 @@ def tampilkan_file_dengan_opsi(file_list, subfolder, label_folder):
             with col1:
                 st.markdown(f"Nama File: `{file}`")
             with col2:
-                if st.button("🗑️ Hapus", key=f"{label_folder}_{file}"):
-                    if delete_file(file, subfolder=subfolder):
+                if st.button("🗑️ Hapus", key=f"{label_folder}_{file}_praktikum"):
+                    lokal_ok = delete_file(file, subfolder=subfolder)
+                    cloud_ok = delete_from_storage(subfolder, file)
+
+                    if lokal_ok or cloud_ok:
                         log_activity(st.session_state.username, f"Hapus {label_folder}", file)
                         st.success(f"{label_folder} '{file}' berhasil dihapus.")
-                        sync_data_to_cloud()
                         st.rerun()
+                    else:
+                        st.error(f"Gagal menghapus {label_folder} '{file}'.")
 
 def show():
     if not is_logged_in() or st.session_state.role not in ["manajemen_praktikum", "koordinator"]:
@@ -42,12 +47,13 @@ def show():
     with tab1:
         st.subheader("📤 Upload Dokumen Rubrik Penilaian")
         file_rubrik = st.file_uploader("Pilih file rubrik (PDF/DOCX)", type=["pdf", "docx"], key="rubrik_penilaian")
-        if file_rubrik:
-            if st.button("📤 Kirim File Rubrik"):
-                save_file(file_rubrik, subfolder="manajemen_praktikum/rubrik")
+        if file_rubrik and st.button("📤 Kirim File Rubrik"):
+            saved_path = save_file(file_rubrik, subfolder="manajemen_praktikum/rubrik")
+            if saved_path:
+                relative_path = os.path.relpath(saved_path, "data").replace("\\", "/")
+                upload_file_to_storage(saved_path, relative_path)
                 log_activity(st.session_state.username, "Upload Rubrik Penilaian", file_rubrik.name)
                 st.success("✅ Dokumen rubrik berhasil diupload.")
-                sync_data_to_cloud()
                 st.rerun()
 
         tampilkan_file_dengan_opsi(
@@ -60,12 +66,13 @@ def show():
     with tab2:
         st.subheader("📤 Upload Rundown Praktikum")
         file_rundown = st.file_uploader("Pilih file rundown (PDF/DOCX)", type=["pdf", "docx"], key="rundown_praktikum")
-        if file_rundown:
-            if st.button("📤 Kirim File Rundown"):
-                save_file(file_rundown, subfolder="manajemen_praktikum/rundown")
+        if file_rundown and st.button("📤 Kirim File Rundown"):
+            saved_path = save_file(file_rundown, subfolder="manajemen_praktikum/rundown")
+            if saved_path:
+                relative_path = os.path.relpath(saved_path, "data").replace("\\", "/")
+                upload_file_to_storage(saved_path, relative_path)
                 log_activity(st.session_state.username, "Upload Rundown Praktikum", file_rundown.name)
                 st.success("✅ Rundown berhasil diupload.")
-                sync_data_to_cloud()
                 st.rerun()
 
         tampilkan_file_dengan_opsi(
@@ -78,12 +85,13 @@ def show():
     with tab3:
         st.subheader("📤 Upload Dokumen Aturan Asisten")
         file_aturan = st.file_uploader("Pilih file aturan (PDF/DOCX)", type=["pdf", "docx"], key="aturan_asisten")
-        if file_aturan:
-            if st.button("📤 Kirim File Aturan"):
-                save_file(file_aturan, subfolder="manajemen_praktikum/aturan")
+        if file_aturan and st.button("📤 Kirim File Aturan"):
+            saved_path = save_file(file_aturan, subfolder="manajemen_praktikum/aturan")
+            if saved_path:
+                relative_path = os.path.relpath(saved_path, "data").replace("\\", "/")
+                upload_file_to_storage(saved_path, relative_path)
                 log_activity(st.session_state.username, "Upload Aturan Asisten", file_aturan.name)
                 st.success("✅ Dokumen aturan berhasil diupload.")
-                sync_data_to_cloud()
                 st.rerun()
 
         tampilkan_file_dengan_opsi(
@@ -118,7 +126,9 @@ def show():
                     if not t["status"] and st.session_state.role != "koordinator":
                         if st.button("Ceklis", key=f"check_manajemen_praktikum_{idx}"):
                             update_task_status("manajemen_praktikum", idx, "selesai")
-                            log_activity(st.session_state.username, "Ceklis Tugas", f"manajemen praktikum: {t['tugas']}")
-                            sync_data_to_cloud()
+                            log_activity(
+                                st.session_state.username,
+                                "Ceklis Tugas",
+                                f"manajemen praktikum: {t['tugas']}"
+                            )
                             st.rerun()
-

@@ -140,21 +140,28 @@ def show():
             df_jadwal = pd.DataFrame(all_rows)
 
             # === Filter ===
-            col1, col2 = st.columns(2)
-            with col1:
-                filter_minggu = st.selectbox("🔎 Filter Minggu", ["Semua"] + sorted(df_jadwal["Minggu"].unique()))
-            with col2:
-                filter_hari = st.selectbox("🔎 Filter Hari", ["Semua"] + sorted(df_jadwal["Hari"].unique()))
+            if not df_jadwal.empty and "Minggu" in df_jadwal.columns and "Hari" in df_jadwal.columns:
+                col1, col2 = st.columns(2)
+                with col1:
+                    minggu_options = ["Semua"] + sorted(df_jadwal["Minggu"].dropna().unique())
+                    filter_minggu = st.selectbox("🔎 Filter Minggu", minggu_options, key="filter_minggu_hr")
 
-            if filter_minggu != "Semua":
-                df_jadwal = df_jadwal[df_jadwal["Minggu"] == filter_minggu]
-            if filter_hari != "Semua":
-                df_jadwal = df_jadwal[df_jadwal["Hari"] == filter_hari]
+                with col2:
+                    hari_options = ["Semua"] + sorted(df_jadwal["Hari"].dropna().unique())
+                    filter_hari = st.selectbox("🔎 Filter Hari", hari_options, key="filter_hari_hr")
 
-            if not df_jadwal.empty:
-                st.dataframe(df_jadwal.drop(columns=["Index"]), use_container_width=True)
+                # Filter berdasarkan input
+                if filter_minggu != "Semua":
+                    df_jadwal = df_jadwal[df_jadwal["Minggu"] == filter_minggu]
+                if filter_hari != "Semua":
+                    df_jadwal = df_jadwal[df_jadwal["Hari"] == filter_hari]
+
+                if not df_jadwal.empty:
+                    st.dataframe(df_jadwal.drop(columns=["Index"]), use_container_width=True)
+                else:
+                    st.info("Tidak ada jadwal yang cocok.")
             else:
-                st.info("Tidak ada jadwal yang cocok.")
+                st.info("Data jadwal kosong atau kolom tidak lengkap.")
 
             # === Verifikasi HR Manual (Tampilkan hanya yang belum diverifikasi penuh) ===
             st.markdown("---")
