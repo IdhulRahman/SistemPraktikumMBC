@@ -2,7 +2,7 @@ import streamlit as st
 from utils.auth import login, logout, is_logged_in
 from utils.config import PAGE_TABS_BY_ROLE
 from utils.firebase_sync import sync_data_from_cloud, sync_data_to_cloud, test_firebase_connections
-from utils.user_management import ganti_akun_page
+from utils.user_management import ganti_akun_sidebar
 
 st.set_page_config(page_title="Sistem Manajemen Praktikum MBC", layout="wide")
 
@@ -29,14 +29,19 @@ def main():
     # Sidebar Info Pengguna
     username = st.session_state.username
     role = st.session_state.role
-    st.sidebar.title("👤 Selamat datang")
-    st.sidebar.markdown(f"**User:** `{username}`")
-    st.sidebar.markdown(f"**Role:** `{role}`")
+    with st.sidebar:
+        st.title("👤 Selamat datang")
+        st.markdown(f"**User:** `{username}`")
+        st.markdown(f"**Role:** `{role}`")
 
-    # 🔄 Sinkronisasi ke cloud saat logout
-    st.sidebar.button("🚪 Logout", on_click=lambda: [sync_data_to_cloud(), logout()])
+        st.markdown("---")
+        ganti_akun_sidebar()
 
-    # Role Koordinator bisa akses semua tab
+        if st.button("🚪 Logout"):
+            sync_data_to_cloud()
+            logout()
+
+    # Tampilkan tab sesuai role
     if role == "koordinator":
         combined_tabs = {}
         for r_tabs in PAGE_TABS_BY_ROLE.values():
@@ -46,13 +51,13 @@ def main():
         allowed_tabs = PAGE_TABS_BY_ROLE.get(role, {})
 
     if allowed_tabs:
-        tab_labels = list(allowed_tabs.keys()) + ["🔐 Ganti Akun"]
+        tab_labels = list(allowed_tabs.keys())
         tabs = st.tabs(tab_labels)
         for i, label in enumerate(tab_labels):
-            if label == "🔐 Ganti Akun":
-                ganti_akun_page()
-            else:
+            with tabs[i]:
                 allowed_tabs[label].show()
+    else:
+        st.warning("Role Anda belum memiliki halaman yang tersedia.")
 
 if __name__ == "__main__":
     main()
