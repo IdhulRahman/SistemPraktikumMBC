@@ -64,25 +64,21 @@ def list_files(subfolder=""):
 
 def delete_file(filename, subfolder=""):
     """
-    Menghapus file dari folder lokal dan Firebase Storage.
-    - `filename`: nama file yang akan dihapus
-    - `subfolder`: subfolder dalam data/dokumen/
-    - Return True jika berhasil dihapus secara lokal (dan mencoba hapus dari cloud)
+    Menghapus file dari lokal dan Firebase Storage.
     """
     try:
-        # Amankan nama file
         safe_filename = os.path.basename(filename)
-        file_path = os.path.join(UPLOAD_FOLDER, subfolder, safe_filename)
+        local_path = os.path.join(UPLOAD_FOLDER, subfolder, safe_filename)
 
-        # Hapus file lokal
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        # Hapus dari lokal
+        if os.path.exists(local_path):
+            os.remove(local_path)
 
-            # Hapus file dari Firebase Storage
-            cloud_path = os.path.join("dokumen", subfolder, safe_filename).replace("\\", "/")
-            delete_from_cloud_storage(cloud_path)
+        # Hapus dari Firebase Storage
+        cloud_path = os.path.join(subfolder, safe_filename).replace("\\", "/")
+        delete_file_from_storage(cloud_path)
 
-            return True
+        return True
     except Exception as e:
-        print(f"[ERROR] Gagal menghapus file lokal/cloud: {e}")
-    return False
+        print(f"[ERROR] Gagal menghapus file: {e}")
+        return False
