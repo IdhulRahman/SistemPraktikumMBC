@@ -7,8 +7,6 @@ TASK_FILE = "data/db/tasks.json"
 
 os.makedirs("data/db", exist_ok=True)
 
-
-
 load_dotenv()
 
 koordinator_user = os.getenv("KOORDINATOR_USER")
