@@ -11,18 +11,23 @@ def tampilkan_file_dengan_opsi(file_list, subfolder, label_folder):
         return
 
     st.markdown(f"### 📂 Daftar {label_folder}")
-    for file in file_list:
+    for i, file in enumerate(file_list):
         with st.expander(f"📄 {file}"):
             col1, col2 = st.columns([0.7, 0.3])
             with col1:
                 st.markdown(f"Nama File: `{file}`")
             with col2:
-                if st.button("🗑️ Hapus", key=f"{label_folder}_{file}_akademik"):
-                    if delete_file(file, subfolder=subfolder):
-                        log_activity(st.session_state.username, f"Hapus {label_folder}", file)
-                        st.success(f"{label_folder} '{file}' berhasil dihapus.")
-                        sync_data_to_cloud()
-                        st.rerun()
+                tombol_key = f"{label_folder}_hapus_{i}"
+                if st.button("🗑️ Hapus", key=tombol_key):
+                    # Tambahkan konfirmasi
+                    if st.confirm(f"Apakah Anda yakin ingin menghapus file '{file}'?"):
+                        if delete_file(file, subfolder=subfolder):
+                            log_activity(st.session_state.username, f"Hapus {label_folder}", file)
+                            st.success(f"{label_folder} '{file}' berhasil dihapus.")
+                            sync_data_to_cloud()
+                            st.rerun()
+                        else:
+                            st.error(f"Gagal menghapus {label_folder} '{file}'.")
 
 def show():
     if not is_logged_in() or st.session_state.role not in ["akademik", "koordinator"]:
