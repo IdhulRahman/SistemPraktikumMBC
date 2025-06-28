@@ -2,6 +2,7 @@ import streamlit as st
 from utils.auth import login, logout, is_logged_in
 from utils.config import PAGE_TABS_BY_ROLE
 from utils.firebase_sync import sync_data_from_cloud, sync_data_to_cloud, test_firebase_connections
+from utils.user_management import ganti_akun_page
 
 st.set_page_config(page_title="Sistem Manajemen Praktikum MBC", layout="wide")
 
@@ -45,13 +46,13 @@ def main():
         allowed_tabs = PAGE_TABS_BY_ROLE.get(role, {})
 
     if allowed_tabs:
-        tab_labels = list(allowed_tabs.keys())
+        tab_labels = list(allowed_tabs.keys()) + ["🔐 Ganti Akun"]
         tabs = st.tabs(tab_labels)
         for i, label in enumerate(tab_labels):
-            with tabs[i]:
+            if label == "🔐 Ganti Akun":
+                ganti_akun_page()
+            else:
                 allowed_tabs[label].show()
-    else:
-        st.warning("Role Anda belum memiliki halaman yang tersedia.")
 
 if __name__ == "__main__":
     main()
