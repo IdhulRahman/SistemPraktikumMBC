@@ -5,8 +5,9 @@ import streamlit as st
 from firebase_admin import credentials, firestore, storage
 from google.api_core.exceptions import GoogleAPIError
 
-global db
-db = firestore.client()
+def get_db():
+    from firebase_admin import firestore
+    return firestore.client()
 
 # === Inisialisasi Firebase menggunakan st.secrets ===
 def initialize_firebase():
