@@ -68,7 +68,6 @@ def show():
                     log_activity(st.session_state.username, "Tambah Jadwal",
                                 f"{nama_asisten} - Kelompok {kelompok} - Minggu {minggu_ke} - {hari} - Shift {shift} - Modul {nama_modul}")
                     st.success("✅ Jadwal berhasil disimpan!")
-                    sync_data_to_cloud()
                     st.rerun()
                 else:
                     st.warning("Nama asisten, kelompok, dan modul tidak boleh kosong.")
@@ -278,8 +277,8 @@ def show():
             if username and password:
                 register_user(username, password, role)
                 log_activity(st.session_state.username, "Tambah User", f"{username} ({role})")
-                sync_data_to_cloud()
                 st.success(f"User `{username}` dengan role `{role}` berhasil ditambahkan.")
+                sync_data_to_cloud()
             else:
                 st.error("Username dan password tidak boleh kosong.")
 
