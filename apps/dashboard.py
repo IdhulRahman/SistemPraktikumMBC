@@ -269,10 +269,11 @@ def show():
     # Tab 4: Tambah User
     with tab4:
         st.subheader("➕ Tambah User Baru")
-        username = st.text_input("Username")
+        username_input = st.text_input("Username")
+        username = username_input.lower() if username_input else ""
         password = st.text_input("Password", type="password")
         role = st.selectbox("Role", [
-            "koordinator", "sekretaris", "bendahara", "hr", "asisten", "akademik", "hardware", "manajemen_praktikum"
+            "koordinator", "sekretaris", "bendahara", "hr", "akademik", "hardware", "manajemen_praktikum"
         ])
         if st.button("Daftarkan"):
             if username and password:
