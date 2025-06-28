@@ -51,15 +51,11 @@ def show_account_settings():
 
                     # Simpan ke lokal
                     save_users(users)
-                    st.toast("✅ File lokal users.json diperbarui.")
 
                     # Info login ulang manual
                     st.success("✅ Akun berhasil diperbarui.")
                     sync_data_to_cloud()
                     st.toast("🔄 Sinkronisasi selesai.")
-                    st.info("Silakan logout dan login kembali untuk menggunakan akun baru. (opsional)")
-
-
 
         except Exception as e:
             st.error(f"❌ Terjadi kesalahan saat memproses akun: {e}")
