@@ -2,9 +2,9 @@ import json
 import os
 import streamlit as st
 from utils.db import load_users, save_users
-from utils.firebase_sync import upload_to_storage, download_from_storage
+from utils.firebase_sync import upload_to_storage, download_from_storage, sync_data_to_cloud
 
-USERS_FILE = "data/db/users.json"
+USERS_FILE = "db/users.json"
 
 def ganti_akun_sidebar():
     with st.expander("🔐 Ganti Username / Password"):
@@ -41,3 +41,4 @@ def ganti_akun_sidebar():
 
             save_users(users)
             st.success("Akun berhasil diperbarui. Silakan logout dan login ulang.")
+            sync_data_to_cloud()
