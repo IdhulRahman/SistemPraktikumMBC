@@ -108,11 +108,10 @@ def show():
             with open(JADWAL_PATH, "r") as f:
                 data = json.load(f)
 
-            def check_file_uploaded(asisten, tipe, kelompok, modul, minggu, hari, shift):
-                if not all([asisten, tipe, kelompok, modul, minggu, hari, shift]):
+            def check_file_uploaded(tipe, kelompok, modul, minggu, hari, shift):
+                if not all([tipe, kelompok, modul, minggu, hari, shift]):
                     return False
                 folder_path = os.path.join("data/dokumen", "asisten", tipe)
-                nama_asisten = asisten.replace(" ", "_")
                 hari = hari.lower()
                 pattern = f"{tipe}_kelompok_{kelompok}_modul_{modul}_minggu{minggu}_{hari}_shift{shift}*.*"
                 matched_files = glob.glob(os.path.join(folder_path, pattern))
