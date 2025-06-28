@@ -25,7 +25,7 @@ def initialize_firebase():
 
             cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred, {
-                "storageBucket": f"{st.secrets['project_id']}.appspot.com"
+                "storageBucket": f"{st.secrets['project_id']}.firebasestorage.app"
             })
 
         print("✅ Firebase berhasil diinisialisasi.")
