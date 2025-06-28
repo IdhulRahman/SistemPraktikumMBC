@@ -1,17 +1,33 @@
 import os
 import json
 import firebase_admin
+import streamlit as st
 from firebase_admin import credentials, firestore, storage
 from google.api_core.exceptions import GoogleAPIError
 
-# === Inisialisasi Firebase ===
+# === Inisialisasi Firebase menggunakan st.secrets ===
 def initialize_firebase():
     try:
         if not firebase_admin._apps:
-            cred = credentials.Certificate("utils/firebase_cred.json")
+            cred_dict = {
+                "type": st.secrets["type"],
+                "project_id": st.secrets["project_id"],
+                "private_key_id": st.secrets["private_key_id"],
+                "private_key": st.secrets["private_key"],
+                "client_email": st.secrets["client_email"],
+                "client_id": st.secrets["client_id"],
+                "auth_uri": st.secrets["auth_uri"],
+                "token_uri": st.secrets["token_uri"],
+                "auth_provider_x509_cert_url": st.secrets["auth_provider_x509_cert_url"],
+                "client_x509_cert_url": st.secrets["client_x509_cert_url"],
+                "universe_domain": st.secrets["universe_domain"]
+            }
+
+            cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred, {
-                "storageBucket": "praktikummbc.firebasestorage.app"  # ✅ Perbaiki domain bucket
+                "storageBucket": f"{st.secrets['project_id']}.firebasestorage.app"
             })
+
         print("✅ Firebase berhasil diinisialisasi.")
         return True
     except Exception as e:
