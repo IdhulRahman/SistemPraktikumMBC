@@ -6,7 +6,8 @@ import os
 def login():
     st.title("🔐 Login Sistem Praktikum")
 
-    username = st.text_input("Username")
+    username_input = st.text_input("Username")
+    username = username_input.lower() if username_input else ""
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
