@@ -49,9 +49,8 @@ def show():
         # === Simpan File ===
         def save_file_with_asisten(file, subfolder, prefix):
             ext = file.name.split(".")[-1]
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             nama_bersih = nama_asisten.replace(" ", "_")
-            nama_file = f"{prefix}_minggu{minggu_ke}_{hari}_shift{shift_ke}_{nama_bersih}_{timestamp}.{ext}"
+            nama_file = f"{prefix}_minggu{minggu_ke}_{hari}_shift{shift_ke}_{nama_bersih}.{ext}"
             save_file(file, subfolder=subfolder, new_filename=nama_file)
 
         # === Submit Button ===
