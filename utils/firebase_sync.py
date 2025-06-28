@@ -157,12 +157,13 @@ def sync_data_from_cloud():
     except Exception as e:
         print(f"❌ Gagal sync dari Storage: {e}")
 
-def delete_from_cloud_storage(cloud_path):
-    """Menghapus file dari Firebase Storage berdasarkan path relatif (contoh: dokumen/akademik/soal/file.pdf)"""
-    init_firebase()  # pastikan Firebase diinisialisasi
-    blob = bucket.blob(cloud_path)
-    if blob.exists():
-        blob.delete()
-        print(f"[Firebase] File '{cloud_path}' berhasil dihapus dari Storage.")
-    else:
-        print(f"[Firebase] File '{cloud_path}' tidak ditemukan di Storage.")
+def delete_file_from_storage(cloud_path):
+    """Menghapus satu file dari Firebase Storage"""
+    try:
+        blob = bucket.blob(cloud_path)
+        if blob.exists():
+            blob.delete()
+            print(f"[INFO] File {cloud_path} dihapus dari Storage.")
+    except Exception as e:
+        print(f"[ERROR] Gagal hapus dari Firebase Storage: {e}")
+
